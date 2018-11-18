@@ -25,6 +25,6 @@ public class Simplicity {
                 .permission("simplicity.command.simplicity")
                 .build();
 
-        Sponge.getCommandManager().register(this, simplicity, "simplicity", "sc", "sp", "simp", "shrink");
+        Sponge.getCommandManager().register(this, simplicity, "simplicity", "sp", "simp", "shrink");
     }
 }
