@@ -21,7 +21,7 @@ public class Simplicity {
         CommandSpec simplicity = CommandSpec.builder()
                 .description(Text.of("The command that does the shrinking!"))
                 .arguments(GenericArguments.seq(new TypeElement(Text.of("type"))), GenericArguments.string(Text.of("message")), GenericArguments.optional(GenericArguments.integer(Text.of("length"))), GenericArguments.optional(GenericArguments.string(Text.of("sound"))), GenericArguments.optional(GenericArguments.player(Text.of("player"))))
-                .executor(new CommandSimplicity())
+                .executor(new CommandSimplicity(this))
                 .permission("simplicity.command.simplicity")
                 .build();
 
