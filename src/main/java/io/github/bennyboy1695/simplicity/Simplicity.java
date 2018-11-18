@@ -20,7 +20,7 @@ public class Simplicity {
     public void onPreInit(GamePreInitializationEvent event) {
         CommandSpec simplicity = CommandSpec.builder()
                 .description(Text.of("The command that does the shrinking!"))
-                .arguments(GenericArguments.seq(new TypeElement(Text.of("type"))), GenericArguments.string(Text.of("message")), GenericArguments.optional(GenericArguments.string(Text.of("sound"))), GenericArguments.optional(GenericArguments.player(Text.of("player"))))
+                .arguments(GenericArguments.seq(new TypeElement(Text.of("type"))), GenericArguments.string(Text.of("message")), GenericArguments.optional(GenericArguments.integer(Text.of("length"))), GenericArguments.optional(GenericArguments.string(Text.of("sound"))), GenericArguments.optional(GenericArguments.player(Text.of("player"))))
                 .executor(new CommandSimplicity())
                 .permission("simplicity.command.simplicity")
                 .build();
