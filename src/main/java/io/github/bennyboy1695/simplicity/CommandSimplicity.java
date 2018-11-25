@@ -33,7 +33,7 @@ public class CommandSimplicity implements CommandExecutor {
         Integer lengthInSeconds = args.<Integer>getOne("length").orElse(5);
         final Integer[] length = {lengthInSeconds};
 
-        Title title = Title.builder().actionBar(TextSerializers.FORMATTING_CODE.deserialize(message)).build();
+        Title title = Title.builder().subtitle(TextSerializers.FORMATTING_CODE.deserialize(message)).build();
 
         switch (type) {
             case "title-sound":
@@ -55,7 +55,7 @@ public class CommandSimplicity implements CommandExecutor {
                         }
                     }).submit(plugin);
                     for (Player player1 : Sponge.getServer().getOnlinePlayers()) {
-                        player1.playSound(SoundType.of(sound), player1.getPosition(), 1.0f);
+                        player1.playSound(SoundType.of(sound), player1.getLocation().getPosition(), 1.0f);
                     }
                     return CommandResult.success();
                 } catch (Exception e) {
@@ -69,7 +69,7 @@ public class CommandSimplicity implements CommandExecutor {
                 }
                 try {
                         for (Player player1 : Sponge.getServer().getOnlinePlayers()) {
-                            player1.playSound(SoundType.of(sound), player1.getPosition(), 1.0f);
+                            player1.playSound(SoundType.of(sound), player1.getLocation().getPosition(), 1.0f);
                             player1.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(message));
                         }
                         return CommandResult.success();
@@ -106,7 +106,7 @@ public class CommandSimplicity implements CommandExecutor {
                 }
                 try {
                         for (Player player1 : Sponge.getServer().getOnlinePlayers()) {
-                            player1.playSound(SoundType.of(sound), player1.getPosition(), 1.0f);
+                            player1.playSound(SoundType.of(sound), player1.getLocation().getPosition(), 1.0f);
                             player1.sendMessage(TextSerializers.FORMATTING_CODE.deserialize(message));
                         }
                     Task.builder().interval(1, TimeUnit.SECONDS).execute(new CancellingTask() {
