@@ -1,0 +1,10 @@
+name: Simplicity
+main: io.github.bennyboy1695.simplicity.Simplicity
+version: 1.0.0
+author: Bennyboy1695
+commands:
+  simplicity:
+    description: The only command of the plugin.
+    usage: /simplicity <title-sound, chat-sound, title-chat, title-chat-sound> <message> <time>
+    permission: simplicity.command.simplicity
+    permission-message: "&cYou don't have <permission> to use this command!"
