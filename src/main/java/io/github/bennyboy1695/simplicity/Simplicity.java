@@ -1,30 +1,47 @@
 package io.github.bennyboy1695.simplicity;
 
-import com.google.inject.Inject;
-import org.slf4j.Logger;
-import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.event.Listener;
-import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
-import org.spongepowered.api.plugin.Plugin;
-import org.spongepowered.api.text.Text;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import net.minecraft.command.Commands;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ExtensionPoint;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.minecraftforge.fml.network.FMLNetworkConstants;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import org.apache.commons.lang3.tuple.Pair;
 
-@Plugin(id = "simplicity", name = "Simplicity", description = "A plugin that shrink's and simplifies multiple commands together. ", authors = {"Bennyboy1695"})
+import java.util.logging.Logger;
+
+@Mod(value = "simplicity")
 public class Simplicity {
 
-    @Inject
-    private Logger logger;
+    public Simplicity() {
+        if (FMLEnvironment.dist != Dist.DEDICATED_SERVER) {
+            Logger.getLogger("[Simplicity]").warning("Non Server Enviroment detected. Simplicity will disable!");
+            return;
+        }
+        ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST, () -> Pair.of(() -> FMLNetworkConstants.IGNORESERVERONLY, (a, b) -> true));
+        MinecraftForge.EVENT_BUS.register(this);
+    }
 
-    @Listener
-    public void onPreInit(GamePreInitializationEvent event) {
-        CommandSpec simplicity = CommandSpec.builder()
-                .description(Text.of("The command that does the shrinking!"))
-                .arguments(GenericArguments.seq(new TypeElement(Text.of("type"))), GenericArguments.string(Text.of("message")), GenericArguments.optional(GenericArguments.integer(Text.of("length"))), GenericArguments.optional(GenericArguments.string(Text.of("sound"))), GenericArguments.optional(GenericArguments.player(Text.of("player"))))
-                .executor(new CommandSimplicity(this))
-                .permission("simplicity.command.simplicity")
-                .build();
+    @SubscribeEvent
+    public void onServerStarted(FMLServerStartedEvent event) {
+        ServerLifecycleHooks.getCurrentServer().getServerStatusResponse().getForgeData().getRemoteModData().remove("simplicity");
+    }
 
-        Sponge.getCommandManager().register(this, simplicity, "simplicity", "sp", "simp", "shrink");
+    @SubscribeEvent
+    public void onServerStarting(FMLServerStartingEvent event) {
+        event.getCommandDispatcher().register(Commands.literal("simplicity")
+                .requires(commandSource -> commandSource.hasPermissionLevel(4))
+                .then(Commands.argument("type", StringArgumentType.string())
+                        .then(Commands.argument("message", StringArgumentType.string())
+                .executes(new CommandSimplicity(this)))));
+
     }
 }

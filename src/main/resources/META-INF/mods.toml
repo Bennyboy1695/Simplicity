@@ -1,0 +1,6 @@
+modLoader="javafml" #mandatory
+loaderVersion="[28,)" #mandatory (28 is current forge version)
+[[mods]] #mandatory
+modId="simplicity" #mandatory
+version="1.0.0" #mandatory
+displayName="Simplicity" #mandatory

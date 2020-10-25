@@ -1,12 +1,133 @@
+buildscript {
+    repositories {
+        maven { url = 'https://files.minecraftforge.net/maven' }
+        jcenter()
+        mavenCentral()
+        maven {
+            name = 'sponge'
+            url = 'https://repo.spongepowered.org/maven'
+        }
+        flatDir {
+            dirs 'libs'
+        }
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+    }
+}
+
 plugins {
-    id 'org.spongepowered.plugin' version '0.8.1'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'maven'
+}
+
+apply plugin: 'net.minecraftforge.gradle'
+
+minecraft {
+    // The mappings can be changed at any time, and must be in the following format.
+    // snapshot_YYYYMMDD   Snapshot are built nightly.
+    // stable_#            Stables are built at the discretion of the MCP team.
+    // Use non-default mappings at your own risk. they may not always work.
+    // Simply re-run your setup task after changing the mappings to update your workspace.
+    mappings channel: 'snapshot', version: '20190719-1.14.3'
+    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+
+    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    // Default run configurations.
+    // These can be tweaked, removed, or duplicated as needed.
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                examplemod {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                examplemod {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+
+            // Recommended logging data for a userdev environment
+            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+            // Recommended logging level for the console
+            property 'forge.logging.console.level', 'debug'
+
+            args '--mod', 'examplemod', '--all', '--output', file('src/generated/resources/')
+
+            mods {
+                examplemod {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
 }
 
 group = pluginGroup
 version = pluginVersion
 
 dependencies {
-    compile 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
+    minecraft 'net.minecraftforge:forge:1.14.4-28.2.3'
+    compile('net.kyori:text-api:3.0.2') {
+        exclude(module: 'checker-qual')
+    }
+    compile('net.kyori:text-serializer-gson:3.0.2') {
+        exclude(module: 'text-api')
+        exclude(module: 'gson')
+    }
+    compile('net.kyori:text-serializer-legacy:3.0.2') {
+        exclude(module: 'text-api')
+    }
 }
 
-sponge.plugin.id = pluginId
+shadowJar {
+    dependencies {
+        include dependency('com.google.code.gson:gson')
+        include dependency('net.kyori:text-api')
+        include dependency('net.kyori:text-serializer-gson')
+        include dependency('net.kyori:text-serializer-legacy')
+    }
+
+    exclude 'META-INF/services/**'
+    relocate 'com.google.gson', 'ca.shadownode.commands.forge.lib.gson'
+    relocate 'net.kyori', 'ca.shadownode.commands.forge.lib.text'
+}
+
+reobf {
+    shadowJar {
+        dependsOn createMcpToSrg
+        mappings = createMcpToSrg.output
+    }
+}
+
+artifacts {
+    archives shadowJar
+}
+
+build.dependsOn tasks.shadowJar
