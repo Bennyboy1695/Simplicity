@@ -5,7 +5,7 @@ buildscript {
         mavenCentral()
         maven {
             name = 'sponge'
-            url = 'https://repo.spongepowered.org/maven'
+            url = 'https://repo.spongepowered.org/repository/maven-public/'
         }
         flatDir {
             dirs 'libs'
@@ -17,7 +17,7 @@ buildscript {
 }
 
 plugins {
-    id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'com.github.johnrengelman.shadow' version '4.0.2'
     id 'maven'
 }
 
@@ -29,7 +29,7 @@ minecraft {
     // stable_#            Stables are built at the discretion of the MCP team.
     // Use non-default mappings at your own risk. they may not always work.
     // Simply re-run your setup task after changing the mappings to update your workspace.
-    mappings channel: 'snapshot', version: '20190719-1.14.3'
+    mappings channel: 'snapshot', version: '20201028-1.16.3'
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
 
     // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
@@ -93,7 +93,7 @@ group = pluginGroup
 version = pluginVersion
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.14.4-28.2.3'
+    minecraft 'net.minecraftforge:forge:1.16.4-35.1.4'
     compile('net.kyori:text-api:3.0.2') {
         exclude(module: 'checker-qual')
     }

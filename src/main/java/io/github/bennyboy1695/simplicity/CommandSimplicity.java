@@ -14,6 +14,7 @@ import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.*;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -21,6 +22,7 @@ import java.util.logging.Logger;
 public class CommandSimplicity implements Command<CommandSource> {
 
     private Simplicity plugin;
+    private UUID CONSOLE_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
     public CommandSimplicity(Simplicity plugin) {
         this.plugin = plugin;
@@ -34,10 +36,10 @@ public class CommandSimplicity implements Command<CommandSource> {
             try {
                 for (ServerPlayerEntity player : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
                     player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 10.0f, 1.0f);
-                    player.sendMessage(convertToITextComponent(LegacyComponentSerializer.legacy().deserialize(message, '&')));
-                    player.connection.sendPacket(new STitlePacket(STitlePacket.Type.ACTIONBAR, TextComponentUtils.updateForEntity(context.getSource(), convertToITextComponent(LegacyComponentSerializer.legacy().deserialize(message, '&')), player, 0)));
+                    player.sendMessage(convertToITextComponent(LegacyComponentSerializer.legacy().deserialize(message, '&')), CONSOLE_UUID);
+                    player.connection.sendPacket(new STitlePacket(STitlePacket.Type.ACTIONBAR, TextComponentUtils.func_240645_a_(context.getSource(), convertToITextComponent(LegacyComponentSerializer.legacy().deserialize(message, '&')), player, 0)));
                 }
-                ServerLifecycleHooks.getCurrentServer().sendMessage(convertToITextComponent(LegacyComponentSerializer.legacy().deserialize(message, '&')));
+                ServerLifecycleHooks.getCurrentServer().sendMessage(convertToITextComponent(LegacyComponentSerializer.legacy().deserialize(message, '&')), CONSOLE_UUID);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -48,7 +50,7 @@ public class CommandSimplicity implements Command<CommandSource> {
     }
 
     public static ITextComponent convertToITextComponent(Component component) {
-        return ITextComponent.Serializer.fromJson(GsonComponentSerializer.INSTANCE.serialize(component));
+        return ITextComponent.Serializer.getComponentFromJson(GsonComponentSerializer.INSTANCE.serialize(component));
     }
 
     public abstract class CancellingTask implements Consumer<Runnable> {
