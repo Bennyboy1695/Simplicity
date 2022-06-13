@@ -1,7 +1,6 @@
 buildscript {
     repositories {
         maven { url = 'https://files.minecraftforge.net/maven' }
-        jcenter()
         mavenCentral()
         maven {
             name = 'sponge'
@@ -12,112 +11,59 @@ buildscript {
         }
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
     }
 }
 
 plugins {
-    id 'com.github.johnrengelman.shadow' version '4.0.2'
-    id 'maven'
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id 'org.ajoberstar.grgit' version '4.1.1'
 }
 
 apply plugin: 'net.minecraftforge.gradle'
 
-minecraft {
-    // The mappings can be changed at any time, and must be in the following format.
-    // snapshot_YYYYMMDD   Snapshot are built nightly.
-    // stable_#            Stables are built at the discretion of the MCP team.
-    // Use non-default mappings at your own risk. they may not always work.
-    // Simply re-run your setup task after changing the mappings to update your workspace.
-    mappings channel: 'snapshot', version: '20201028-1.16.3'
-    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+project.ext {
+    // Open the Git repository in the current directory.
+    git = org.ajoberstar.grgit.Grgit.open(dir: file('.'))
+    // Get commit id of HEAD.
+    gitRevision = git.head().id
+    // Get abbreviated commit Id of HEAD
+    gitAbbRevision = git.head().abbreviatedId
+}
 
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-    // Default run configurations.
-    // These can be tweaked, removed, or duplicated as needed.
-    runs {
-        client {
-            workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-
-            // Recommended logging level for the console
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                examplemod {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        server {
-            workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-
-            // Recommended logging level for the console
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                examplemod {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file('run')
-
-            // Recommended logging data for a userdev environment
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-
-            // Recommended logging level for the console
-            property 'forge.logging.console.level', 'debug'
-
-            args '--mod', 'examplemod', '--all', '--output', file('src/generated/resources/')
-
-            mods {
-                examplemod {
-                    source sourceSets.main
-                }
-            }
-        }
+repositories {
+    mavenCentral()
+    maven {
+        name = 'sponge-repo'
+        url = 'https://repo.spongepowered.org/repository/maven-public/'
     }
+    maven {
+        name = "sonatype-oss-snapshots"
+        url = "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
+    flatDir {
+        dirs 'libs'
+    }
+}
+
+minecraft {
+    mappings channel: 'official', version: '1.18.2'
+}
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.18.2-40.1.0'
+
+    implementation 'net.kyori:adventure-api:4.10.1'
+    implementation 'net.kyori:adventure-text-serializer-gson:4.9.3'
+    implementation 'net.kyori:adventure-text-serializer-legacy:4.9.3'
+
 }
 
 group = pluginGroup
-version = pluginVersion
-
-dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.4-35.1.4'
-    compile('net.kyori:text-api:3.0.2') {
-        exclude(module: 'checker-qual')
-    }
-    compile('net.kyori:text-serializer-gson:3.0.2') {
-        exclude(module: 'text-api')
-        exclude(module: 'gson')
-    }
-    compile('net.kyori:text-serializer-legacy:3.0.2') {
-        exclude(module: 'text-api')
-    }
-}
-
-shadowJar {
-    dependencies {
-        include dependency('com.google.code.gson:gson')
-        include dependency('net.kyori:text-api')
-        include dependency('net.kyori:text-serializer-gson')
-        include dependency('net.kyori:text-serializer-legacy')
-    }
-
-    exclude 'META-INF/services/**'
-    relocate 'com.google.gson', 'ca.shadownode.commands.forge.lib.gson'
-    relocate 'net.kyori', 'ca.shadownode.commands.forge.lib.text'
-}
+version = gitAbbRevision
 
 reobf {
     shadowJar {
@@ -125,9 +71,56 @@ reobf {
         mappings = createMcpToSrg.output
     }
 }
+// Example for how to get properties into the manifest for reading by the runtime..
+jar {
+    manifest {
+        attributes([
+                "Specification-Title"     : project.name,
+                "Specification-Vendor"    : "shadownode",
+                "Specification-Version"   : "1", // We are version 1 of ourselves
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : getArchiveVersion(),
+                "Implementation-Vendor"   : "shadownode",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+shadowJar {
+    baseName = rootProject.name
+
+    dependencies {
+        include dependency('net.kyori:adventure-api')
+        include dependency('net.kyori:adventure-text-serializer-gson')
+        include dependency('net.kyori:adventure-text-serializer-legacy')
+        include dependency('net.kyori:adventure-key')
+        include dependency('net.kyori:examination-api')
+        include dependency('net.kyori:examination-string')
+    }
+
+    exclude 'META-INF/services/**'
+    relocate 'net.kyori', 'io.github.bennyboy1695.simplicity.forge.lib.adventure'
+}
 
 artifacts {
     archives shadowJar
 }
 
 build.dependsOn tasks.shadowJar
+
+task copyJar(type: Copy) {
+    from 'build/libs'
+    include rootProject.name + '-' + version + '.jar'
+    String server = System.getenv("TEST_SERVER");
+    if (server != null)
+        into file("$server/custom/plugins")
+}
+
+task deleteFiles(type: Delete) {
+    String server = System.getenv("TEST_SERVER")
+    if (server != null) {
+        delete fileTree("$server/custom/plugins") {
+            include rootProject.name + '-*.jar'
+        }
+    }
+}
