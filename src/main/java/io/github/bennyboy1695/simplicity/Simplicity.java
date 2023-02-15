@@ -35,15 +35,9 @@ public class Simplicity {
             Logger.getLogger("[Simplicity]").warning("Non Server Enviroment detected. Simplicity will disable!");
             return;
         }
-        markAsNotRequiredClientSide();
-        MinecraftForge.EVENT_BUS.addListener(this::onServerStarted);
         MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
         MinecraftForge.EVENT_BUS.addListener(this::registerPerms);
-    }
-
-    @SubscribeEvent
-    public void onServerStarted(ServerStartedEvent event) {
-        ServerLifecycleHooks.getCurrentServer().getStatus().getForgeData().getRemoteModData().remove("simplicity");
+        ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (a, b) -> true));
     }
 
     @SubscribeEvent
@@ -53,29 +47,13 @@ public class Simplicity {
                 .requires(hasPermission(SIMPLICTY))
                 .then(Commands.argument("type", StringArgumentType.string())
                         .then(Commands.argument("message", StringArgumentType.string())
-                .executes(new CommandSimplicity(this)))));
+                                .executes(new CommandSimplicity(this)))));
 
     }
 
     @SubscribeEvent
     public void registerPerms(PermissionGatherEvent.Nodes event) {
         event.addNodes(SIMPLICTY);
-    }
-
-    private static void markAsNotRequiredClientSide() {
-        try {
-            ModLoadingContext.class.getDeclaredMethod("registerExtensionPoint", Class.class, Supplier.class)
-                    .invoke(
-                            ModLoadingContext.get(),
-                            IExtensionPoint.DisplayTest.class,
-                            (Supplier<?>) () -> new IExtensionPoint.DisplayTest(
-                                    () -> NetworkConstants.IGNORESERVERONLY,
-                                    (a, b) -> true
-                            )
-                    );
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            throw new IllegalStateException(e);
-        }
     }
 
     private Predicate<CommandSourceStack> hasPermission(PermissionNode<Boolean> permission) {

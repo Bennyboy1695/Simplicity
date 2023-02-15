@@ -1,27 +1,10 @@
-buildscript {
-    repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        mavenCentral()
-        maven {
-            name = 'sponge'
-            url = 'https://repo.spongepowered.org/repository/maven-public/'
-        }
-        flatDir {
-            dirs 'libs'
-        }
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-    }
-}
-
 plugins {
+    id 'maven-publish'
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id "dev.architectury.loom" version "1.0.311"
+/*    id 'com.github.johnrengelman.shadow' version '7.1.2'*/
     id 'org.ajoberstar.grgit' version '4.1.1'
 }
-
-apply plugin: 'net.minecraftforge.gradle'
 
 project.ext {
     // Open the Git repository in the current directory.
@@ -32,10 +15,22 @@ project.ext {
     gitAbbRevision = git.head().abbreviatedId
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+version = project.minecraft_version + "-" + gitAbbRevision
+group = "ca.shadownode.shadowessentials"
 
 repositories {
+    jcenter()
     mavenCentral()
+    maven {
+        url 'https://gitlab.com/api/v4/projects/38224197/packages/maven'
+    }
+    maven {
+        url "https://jitpack.io/"
+    }
+    maven {
+        name 'Gegy'
+        url 'https://maven.gegy.dev'
+    }
     maven {
         name = 'sponge-repo'
         url = 'https://repo.spongepowered.org/repository/maven-public/'
@@ -44,69 +39,39 @@ repositories {
         name = "sonatype-oss-snapshots"
         url = "https://oss.sonatype.org/content/repositories/snapshots/"
     }
-    flatDir {
-        dirs 'libs'
-    }
 }
 
-minecraft {
-    mappings channel: 'official', version: '1.18.2'
+loom {
+    // use this if you are using the official mojang mappings
+    // and want loom to stop warning you about their license
+    silentMojangMappingsLicense()
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18.2-40.1.0'
+    // To change the versions see the gradle.properties file
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.officialMojangMappings()
+    forge "net.minecraftforge:forge:${project.forge_version}"
 
-    implementation 'net.kyori:adventure-api:4.10.1'
-    implementation 'net.kyori:adventure-text-serializer-gson:4.9.3'
-    implementation 'net.kyori:adventure-text-serializer-legacy:4.9.3'
+    implementation include('net.kyori:adventure-api:4.12.0')
+    implementation include('net.kyori:adventure-text-serializer-gson:4.12.0')
+    implementation include('net.kyori:adventure-text-serializer-legacy:4.12.0')
+}
 
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
+    archivesBaseName = project.name
 }
 
 group = pluginGroup
 version = gitAbbRevision
 
-reobf {
-    shadowJar {
-        dependsOn createMcpToSrg
-        mappings = createMcpToSrg.output
-    }
-}
-// Example for how to get properties into the manifest for reading by the runtime..
+
 jar {
-    manifest {
-        attributes([
-                "Specification-Title"     : project.name,
-                "Specification-Vendor"    : "shadownode",
-                "Specification-Version"   : "1", // We are version 1 of ourselves
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : getArchiveVersion(),
-                "Implementation-Vendor"   : "shadownode",
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
+    from("LICENSE") {
+        rename { "${it}_${project.archivesBaseName}" }
     }
 }
-
-shadowJar {
-    baseName = rootProject.name
-
-    dependencies {
-        include dependency('net.kyori:adventure-api')
-        include dependency('net.kyori:adventure-text-serializer-gson')
-        include dependency('net.kyori:adventure-text-serializer-legacy')
-        include dependency('net.kyori:adventure-key')
-        include dependency('net.kyori:examination-api')
-        include dependency('net.kyori:examination-string')
-    }
-
-    exclude 'META-INF/services/**'
-    relocate 'net.kyori', 'io.github.bennyboy1695.simplicity.forge.lib.adventure'
-}
-
-artifacts {
-    archives shadowJar
-}
-
-build.dependsOn tasks.shadowJar
 
 task copyJar(type: Copy) {
     from 'build/libs'
